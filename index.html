@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptMaster Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-[#0f111a]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Lucide ikonlarını React içinde kullanabilmek için yardımcı
+        const { Search, Copy, Check, Filter, Sparkles, Image: ImageIcon, User, Layout, Palette, Camera, Terminal, Wand2, Download, Maximize2, X } = {
+            Search: (props) => <i data-lucide="search" {...props}></i>,
+            Copy: (props) => <i data-lucide="copy" {...props}></i>,
+            Check: (props) => <i data-lucide="check" {...props}></i>,
+            Sparkles: (props) => <i data-lucide="sparkles" {...props}></i>,
+            Image: (props) => <i data-lucide="image" {...props}></i>,
+            User: (props) => <i data-lucide="user" {...props}></i>,
+            Terminal: (props) => <i data-lucide="terminal" {...props}></i>,
+            Wand2: (props) => <i data-lucide="wand-2" {...props}></i>,
+            Download: (props) => <i data-lucide="download" {...props}></i>,
+            Maximize2: (props) => <i data-lucide="maximize-2" {...props}></i>
+        };
+
+        const PROMPTS_DATA = [
+            { id: 1, title: "Portreli Geniş Alıntı Kartı", category: "Grafik Tasarım", tags: ["Sosyal Medya"], language: "TR/EN", description: "Ünlü bir kişinin portresini içeren, şık ve profesyonel bir alıntı kartı düzeni.", prompt: "A wide quote card featuring a famous person...", author: "Nicolechan" },
+            { id: 2, title: "El Çizimi Başlık Görseli", category: "İçerik Üretimi", tags: ["Blog", "Minimalist"], language: "TR", description: "Notlar veya blog yazıları için el çizimi tarzında.", prompt: "Recreate the uploaded person completely...", author: "Akira Kudo" },
+            { id: 3, title: "Suluboya Stilinde Harita", category: "Eğitim", tags: ["İnfografik"], language: "TR", description: "Eğitim materyalleri veya posterler için.", prompt: "Create a map of Germany...", author: "Florian Gallwitz" },
+            { id: 4, title: "Kara Tahta Haber Özeti", category: "Eğitim", tags: ["Diyagram"], language: "TR", description: "Karmaşık konuları bir öğretmen edasıyla özetleyen görsel.", prompt: "Summarize the news using a chalkboard style...", author: "Hidemun" }
+        ];
+
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('studio');
+            const [userPrompt, setUserPrompt] = React.useState('');
+            const [searchTerm, setSearchTerm] = React.useState('');
+            const [selectedCategory, setSelectedCategory] = React.useState('Hepsi');
+            const [toast, setToast] = React.useState({ show: false, message: '' });
+
+            React.useEffect(() => {
+                lucide.createIcons(); // İkonları render et
+            }, [activeTab]);
+
+            const categories = ['Hepsi', ...new Set(PROMPTS_DATA.map(p => p.category))];
+            const filteredPrompts = PROMPTS_DATA.filter(p => (p.title + p.prompt).toLowerCase().includes(searchTerm.toLowerCase()) && (selectedCategory === 'Hepsi' || p.category === selectedCategory));
+
+            const showNotification = (msg) => {
+                setToast({ show: true, message: msg });
+                setTimeout(() => setToast({ show: false, message: '' }), 3000);
+            };
+
+            return (
+                <div className="min-h-screen bg-[#0f111a] text-slate-200">
+                    <nav className="border-b border-white/5 bg-[#0f111a]/80 backdrop-blur-xl sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"><Sparkles className="w-6 h-6 text-white" /></div>
+                                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">PromptMaster Pro</h1>
+                            </div>
+                            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                                {['studio', 'library'].map(tab => (
+                                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === tab ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'}`}>{tab === 'studio' ? 'AI Studio' : 'İstem Kütüphanesi'}</button>
+                                ))}
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto px-6 py-8">
+                        {activeTab === 'studio' ? (
+                            <div className="grid lg:grid-cols-12 gap-8">
+                                <div className="lg:col-span-7 space-y-6">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                                        <label className="text-sm font-semibold text-slate-400 mb-3 block uppercase tracking-wider">Fikrinizi Tanımlayın</label>
+                                        <textarea value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} placeholder="Örn: Ormanda antik bir tapınak..." className="w-full h-40 bg-black/40 border border-white/5 rounded-xl p-4 text-white focus:outline-none focus:border-indigo-500 resize-none" />
+                                        <div className="mt-4 flex gap-4">
+                                            <button onClick={() => showNotification("Gemini API anahtarı eklenmeli!")} className="flex-1 bg-white/5 border border-white/10 py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-white/10 transition-all"><Wand2 className="w-5 h-5 text-indigo-400" /> AI ile Geliştir</button>
+                                            <button onClick={() => showNotification("Görsel API anahtarı eklenmeli!")} className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 py-4 rounded-xl font-bold text-white shadow-lg">Görseli Oluştur</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-5">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 min-h-[400px] flex flex-col items-center justify-center text-slate-600">
+                                        <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
+                                        <p>Henüz bir görsel oluşturulmadı.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-8">
+                                <header className="text-center max-w-3xl mx-auto mb-12">
+                                    <h2 className="text-3xl font-black mb-4">Topluluk <span className="text-indigo-400">İstemleri</span></h2>
+                                    <p className="text-slate-400">En etkili görsel sonuçlarını veren komutları keşfedin.</p>
+                                </header>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {filteredPrompts.map(item => (
+                                        <div key={item.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:border-indigo-500/50 transition-all">
+                                            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-[10px] font-black uppercase mb-4 inline-block">{item.category}</span>
+                                            <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                                            <p className="text-slate-400 text-sm mb-4">{item.description}</p>
+                                            <button onClick={() => { navigator.clipboard.writeText(item.prompt); showNotification("Kopyalandı!"); }} className="w-full bg-indigo-500 py-3 rounded-xl font-bold text-white">İstemi Kopyala</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {toast.show && (
+                        <div className="fixed bottom-8 right-8 bg-[#1a1c2e] border border-indigo-500/30 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+                            <Sparkles className="w-4 h-4 text-indigo-400" />
+                            <p className="text-sm font-bold text-white">{toast.message}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
